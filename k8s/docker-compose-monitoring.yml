@@ -1,0 +1,59 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'monitoring-stack'
+
+# Règles d'alerting (optionnel)
+# rule_files:
+#   - "alerts/*.yml"
+
+scrape_configs:
+  # Prometheus lui-même
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Métriques système Ubuntu (Node Exporter)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          instance: 'ubuntu-server'
+
+  # Métriques Docker (cAdvisor)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # Jenkins
+  - job_name: 'jenkins'
+    metrics_path: '/prometheus'
+    static_configs:
+      - targets: ['jenkins:8080']  # Ajustez l'adresse selon votre config
+        labels:
+          instance: 'jenkins-server'
+
+  # Application Spring Boot avec Actuator
+  - job_name: 'spring-boot-app'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:8081']  # Ajustez le port
+        labels:
+          application: 'mon-app-spring'
+          environment: 'production'
+      # Ajoutez d'autres instances si vous avez plusieurs applications
+      # - targets: ['app2:8082']
+      #   labels:
+      #     application: 'autre-app'
+
+  # PostgreSQL/MySQL (si vous utilisez un exporter)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+
+  # Redis (si vous utilisez un exporter)
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
